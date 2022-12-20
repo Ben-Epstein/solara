@@ -26,8 +26,8 @@ def field(value: S) -> Field[S]:
 
 
 class Bears(ModelBase, frozen=True):
-    type = field(cast(Optional[str], "brown"))
-    count = field(1)
+    type = Field(cast(Optional[str], "brown"))
+    count = Field(1)
 
 
 class BearsReactive(Reactive[Bears]):

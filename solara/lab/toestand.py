@@ -10,6 +10,7 @@ from typing import (
     Dict,
     Generic,
     List,
+    Optional,
     Set,
     Tuple,
     Type,
@@ -51,11 +52,10 @@ class ModelBase:
             self.__dict__[k] = v
         for name, value in vars(cls).items():
             if isinstance(value, Field) and name not in self.__dict__:
-                default = value.default
-                if default == dataclasses.MISSING:
-                    if value.default_factory == dataclasses.MISSING:
-                        raise TypeError(f"no default value for {name}")
+                if value.default_factory is not None:
                     default = value.default_factory()
+                else:
+                    default = value.default
                 # setattr(self, name, default)
                 # do not trigger the __set__
                 self.__dict__[name] = default
@@ -360,7 +360,15 @@ class Computed(Generic[T]):
 
 
 class Field(ValueBase[S]):
-    def __init__(self, default=dataclasses.MISSING, default_factory=dataclasses.MISSING):
+    @overload
+    def __init__(self, default: S, default_factory: None = ...):
+        ...
+
+    @overload
+    def __init__(self, default: None = ..., default_factory: Callable[[], S] = ...):
+        ...
+
+    def __init__(self, default: Optional[S] = None, default_factory: Optional[Callable[[], S]] = None):
         self.default = default
         self.default_factory = default_factory
         ValueBase.__init__(self)
